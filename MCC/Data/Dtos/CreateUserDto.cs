@@ -27,6 +27,9 @@ namespace MCC.Data.Dtos
         public string Period { get; set; }
 
         [Required]
+        public string Role { get; set; }
+
+        [Required]
         public DateTime Birthday { get; set; }
 
     }
