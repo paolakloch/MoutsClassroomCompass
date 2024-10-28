@@ -29,8 +29,6 @@ namespace MCC.Data.Dtos
         [Required]
         public string Role { get; set; }
 
-        [Required]
-        public DateTime Birthday { get; set; }
 
     }
 }

@@ -3,6 +3,9 @@ using MCC.Data;
 using MCC.Models;
 using Microsoft.AspNetCore.Identity;
 using MCC.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace MCC
 {
@@ -12,39 +15,66 @@ namespace MCC
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
+            // Configuração da conexão com o banco de dados
             var connString = builder.Configuration.GetConnectionString("DefaultConnection");
-
             builder.Services.AddDbContext<UserDBContext>(opts =>
             {
                 opts.UseNpgsql(connString);
             });
 
+            // Configuração do Identity
             builder.Services
                 .AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<UserDBContext>()
                 .AddDefaultTokenProviders();
 
-            builder.Services.AddAutoMapper
-                  (AppDomain.CurrentDomain.GetAssemblies());
+            // Configuração do AutoMapper
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-
+            // Registro dos serviços
             builder.Services
-                .AddScoped<RegisterService>() // optei por usar scoped - o servico vai sempre ser instanciado quando houver uma requisição nova que demande uma instancia desse register service // o singleton seria 1 unico cadastro service pra todas as reqs seria a mesma instancia // add transient faz sempre uma instancia nova mesmo que na mesma req
+                .AddScoped<RegisterService>()
                 .AddScoped<LoginService>()
                 .AddScoped<TokenService>();
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+            // Configuração do Swagger
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            // Configuração da autenticação JWT
+            var jwtKey = builder.Configuration["Jwt:Key"]; // Pegando do appsettings.json
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)), // Chave do JWT
+                };
+            });
 
+            // Configuração da autorização
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("RequerProfessor", policy =>
+                    policy.RequireRole("TEACHER"));
+
+                options.AddPolicy("RequerAluno", policy =>
+                    policy.RequireRole("STUDENT"));
+            });
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // Configuração do pipeline de requisições HTTP
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -53,6 +83,8 @@ namespace MCC
 
             app.UseHttpsRedirection();
 
+            // Habilita a autenticação e autorização
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();
