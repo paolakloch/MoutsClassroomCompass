@@ -96,15 +96,17 @@ namespace MCC
 
             app.UseHttpsRedirection();
 
-            // Habilita a autentica��o e autoriza��o
+            app.UseRouting();
+
+            // Adiciona os middlewares de autenticação e autorização
             app.UseAuthentication();
             app.UseAuthorization();
 
+            // Mapeia os endpoints para os controladores
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers(); // validação dos endpoints
+                endpoints.MapControllers();
             });
-
 
             app.Run();
         }
