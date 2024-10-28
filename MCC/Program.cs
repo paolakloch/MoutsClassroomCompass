@@ -5,12 +5,9 @@ using Microsoft.AspNetCore.Identity;
 using MCC.Services;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-
-using Microsoft.EntityFrameworkCore;
-using System.Data.Common;
-using MCC.Data;
-using MCC.Services;
 using MCC.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using MCC.Services.Authentication;
 
 namespace MCC
 {
@@ -46,7 +43,6 @@ namespace MCC
 
             // Configura��o do Swagger
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
 
             //DbContext
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
