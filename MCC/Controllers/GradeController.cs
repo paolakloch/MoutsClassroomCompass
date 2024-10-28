@@ -1,6 +1,7 @@
 ﻿using MCC.Services;
 using MCC.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MCC.Controllers
 {
@@ -14,6 +15,7 @@ namespace MCC.Controllers
             _service = service;
         }
 
+        [Authorize(Roles = "TEACHER")]
         [HttpGet]
         public IActionResult Get()
         {
@@ -28,6 +30,7 @@ namespace MCC.Controllers
             
         }
 
+        [Authorize(Roles = "TEACHER,STUDENT")]
         [HttpGet("{id}")]
         public IActionResult Get(Guid id)
         {
@@ -42,6 +45,7 @@ namespace MCC.Controllers
 
         }
 
+        [Authorize(Roles = "TEACHER,STUDENT")]
         [HttpGet("student/{studentId}/subject/{subjectId}")]
         public IActionResult Get(Guid studentId, Guid subjectId)
         {
@@ -57,6 +61,7 @@ namespace MCC.Controllers
 
         }
 
+        [Authorize(Roles = "TEACHER")]
         [HttpPost]
         public IActionResult Post([FromBody] Grade grade)
         {
@@ -70,6 +75,8 @@ namespace MCC.Controllers
             }
         }
 
+
+        [Authorize(Roles = "TEACHER")]
         [HttpDelete("{id}")]
         public IActionResult Delete(Guid id)
         {
@@ -84,6 +91,8 @@ namespace MCC.Controllers
             }
         }
 
+
+        [Authorize(Roles = "TEACHER")]
         [HttpPut("{id}")]
         public IActionResult Put(Guid id, [FromBody] Grade grade)
         {

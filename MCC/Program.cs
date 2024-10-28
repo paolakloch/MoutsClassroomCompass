@@ -9,9 +9,8 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using System.Data.Common;
 using MCC.Data;
+using MCC.Services;
 using MCC.Repositories;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using MCC.Services.Authentication;
 
 namespace MCC
 {
@@ -97,20 +96,19 @@ namespace MCC
 
             var app = builder.Build();
 
-            // Configura��o do pipeline de requisi��es HTTP
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+        
 
             app.UseHttpsRedirection();
 
             // Habilita a autentica��o e autoriza��o
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); }); //validação dos endpoints
-            app.MapControllers();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers(); // validação dos endpoints
+            });
+
 
             app.Run();
         }
