@@ -1,52 +1,50 @@
 ﻿using AutoMapper;
 using MCC.Data.Dtos;
 using MCC.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 
 namespace MCC.Services
 {
     public class LoginService
     {
-        private IMapper _mapper;
-        private UserManager<User> _userManager;
-        private SignInManager<User> _signInManager;
-        private TokenService _tokenService;
+        private readonly IMapper _mapper;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+        private readonly TokenService _tokenService;
 
         public LoginService(
             IMapper mapper,
             UserManager<User> userManager,
             TokenService tokenService,
-            SignInManager<User> signInManager
-            )
+            SignInManager<User> signInManager)
         {
             _mapper = mapper;
             _tokenService = tokenService;
             _userManager = userManager;
             _signInManager = signInManager;
-
         }
 
         public async Task<string> LoginAsync(LoginUserDto dto)
         {
-            var result =
-            await _signInManager.PasswordSignInAsync(dto.UserName, dto.Password, false, false);
+            // Tenta fazer login
+            var result = await _signInManager.PasswordSignInAsync(dto.UserName, dto.Password, false, false);
 
             if (!result.Succeeded)
             {
-                throw new Exception("Usuário não autenticado");
+                // Retorna null ou lança uma exceção específica, se necessário
+                throw new UnauthorizedAccessException("Usuário ou senha incorretos.");
             }
 
-            var user = _signInManager
-                .UserManager
-                .Users
-                .FirstOrDefault(user =>
-                user.NormalizedUserName == dto.UserName.ToUpper());
+            // Obtém o usuário após o login bem-sucedido
+            var user = await _userManager.FindByNameAsync(dto.UserName);
+            if (user == null)
+            {
+                throw new Exception("Usuário não encontrado.");
+            }
 
+            // Gera o token
             var token = _tokenService.GenerateToken(user);
-
-            return token;
-
+            return await token;
         }
     }
 }

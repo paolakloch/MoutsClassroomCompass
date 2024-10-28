@@ -16,10 +16,23 @@ namespace MCC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> RegisterUser(CreateUserDto dto)
+        public async Task<IActionResult> RegisterUser([FromBody] CreateUserDto dto)
         {
-            await _registerService.RegisterAsync(dto);
-            return Ok("Usuário Cadastrado!");
+            if (dto == null)
+            {
+                return BadRequest("User data is required.");
+            }
+
+
+            try
+            {
+                await _registerService.RegisterAsync(dto);
+                return Ok("Usuário cadastrado com sucesso!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Erro ao cadastrar usuário: {ex.Message}");
+            }
         }
     }
 }
