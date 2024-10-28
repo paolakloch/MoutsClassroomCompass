@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MCC.Data.Dtos;
 using MCC.Models;
+using MCC.Services.Authentication;
 using Microsoft.AspNetCore.Identity;
 
 namespace MCC.Services
