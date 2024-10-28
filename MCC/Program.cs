@@ -7,6 +7,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
+using Microsoft.EntityFrameworkCore;
+using System.Data.Common;
+using MCC.Data;
+using MCC.Services;
+using MCC.Repositories;
+
 namespace MCC
 {
     public class Program
@@ -15,23 +21,23 @@ namespace MCC
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Configuração da conexão com o banco de dados
-            var connString = builder.Configuration.GetConnectionString("DefaultConnection");
+            // Configuraï¿½ï¿½o da conexï¿½o com o banco de dados
+            var connString = builder.Configuration.GetConnectionString("StringConnection");
             builder.Services.AddDbContext<UserDBContext>(opts =>
             {
                 opts.UseNpgsql(connString);
             });
 
-            // Configuração do Identity
+            // Configuraï¿½ï¿½o do Identity
             builder.Services
                 .AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<UserDBContext>()
                 .AddDefaultTokenProviders();
 
-            // Configuração do AutoMapper
+            // Configuraï¿½ï¿½o do AutoMapper
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            // Registro dos serviços
+            // Registro dos serviï¿½os
             builder.Services
                 .AddScoped<RegisterService>()
                 .AddScoped<LoginService>()
@@ -39,11 +45,28 @@ namespace MCC
 
             builder.Services.AddControllers();
 
-            // Configuração do Swagger
+            // Configuraï¿½ï¿½o do Swagger
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            // Configuração da autenticação JWT
+            //DbContext
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseNpgsql(builder.Configuration.GetConnectionString("StringConnection")));
+
+            builder.Services.AddScoped<StudentService>();
+            builder.Services.AddScoped<StudentRepository>();
+
+            builder.Services.AddScoped<SubjectService>();
+            builder.Services.AddScoped<SubjectRepository>();
+
+            builder.Services.AddScoped<GradeService>();
+            builder.Services.AddScoped<GradeRepository>();
+
+            builder.Services.AddScoped<TeacherService>();
+            builder.Services.AddScoped<TeacherRepository>();
+
+            builder.Services.AddScoped<ValidationService>();
+            // Configuraï¿½ï¿½o da autenticaï¿½ï¿½o JWT
             var jwtKey = builder.Configuration["Jwt:Key"]; // Pegando do appsettings.json
             builder.Services.AddAuthentication(options =>
             {
@@ -62,7 +85,7 @@ namespace MCC
                 };
             });
 
-            // Configuração da autorização
+            // Configuraï¿½ï¿½o da autorizaï¿½ï¿½o
             builder.Services.AddAuthorization(options =>
             {
                 options.AddPolicy("RequerProfessor", policy =>
@@ -74,7 +97,7 @@ namespace MCC
 
             var app = builder.Build();
 
-            // Configuração do pipeline de requisições HTTP
+            // Configuraï¿½ï¿½o do pipeline de requisiï¿½ï¿½es HTTP
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -83,7 +106,7 @@ namespace MCC
 
             app.UseHttpsRedirection();
 
-            // Habilita a autenticação e autorização
+            // Habilita a autenticaï¿½ï¿½o e autorizaï¿½ï¿½o
             app.UseAuthentication();
             app.UseAuthorization();
 
