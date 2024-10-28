@@ -1,3 +1,11 @@
+using Microsoft.EntityFrameworkCore;
+using MCC.Data;
+using MCC.Models;
+using Microsoft.AspNetCore.Identity;
+using MCC.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 using Microsoft.EntityFrameworkCore;
 using System.Data.Common;
@@ -13,10 +21,31 @@ namespace MCC
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // Configura��o da conex�o com o banco de dados
+            var connString = builder.Configuration.GetConnectionString("StringConnection");
+            builder.Services.AddDbContext<UserDBContext>(opts =>
+            {
+                opts.UseNpgsql(connString);
+            });
+
+            // Configura��o do Identity
+            builder.Services
+                .AddIdentity<User, IdentityRole>()
+                .AddEntityFrameworkStores<UserDBContext>()
+                .AddDefaultTokenProviders();
+
+            // Configura��o do AutoMapper
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+            // Registro dos servi�os
+            builder.Services
+                .AddScoped<RegisterService>()
+                .AddScoped<LoginService>()
+                .AddScoped<TokenService>();
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+            // Configura��o do Swagger
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -37,10 +66,38 @@ namespace MCC
             builder.Services.AddScoped<TeacherRepository>();
 
             builder.Services.AddScoped<ValidationService>();
+            // Configura��o da autentica��o JWT
+            var jwtKey = builder.Configuration["Jwt:Key"]; // Pegando do appsettings.json
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)), // Chave do JWT
+                };
+            });
+
+            // Configura��o da autoriza��o
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("RequerProfessor", policy =>
+                    policy.RequireRole("TEACHER"));
+
+                options.AddPolicy("RequerAluno", policy =>
+                    policy.RequireRole("STUDENT"));
+            });
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // Configura��o do pipeline de requisi��es HTTP
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -49,8 +106,9 @@ namespace MCC
 
             app.UseHttpsRedirection();
 
+            // Habilita a autentica��o e autoriza��o
+            app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
 
