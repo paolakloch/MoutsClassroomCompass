@@ -1,4 +1,10 @@
 
+using Microsoft.EntityFrameworkCore;
+using System.Data.Common;
+using MCC.Data;
+using MCC.Services;
+using MCC.Repositories;
+
 namespace MCC
 {
     public class Program
@@ -13,6 +19,24 @@ namespace MCC
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            //DbContext
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseNpgsql(builder.Configuration.GetConnectionString("StringConnection")));
+
+            builder.Services.AddScoped<StudentService>();
+            builder.Services.AddScoped<StudentRepository>();
+
+            builder.Services.AddScoped<SubjectService>();
+            builder.Services.AddScoped<SubjectRepository>();
+
+            builder.Services.AddScoped<GradeService>();
+            builder.Services.AddScoped<GradeRepository>();
+
+            builder.Services.AddScoped<TeacherService>();
+            builder.Services.AddScoped<TeacherRepository>();
+
+            builder.Services.AddScoped<ValidationService>();
 
             var app = builder.Build();
 

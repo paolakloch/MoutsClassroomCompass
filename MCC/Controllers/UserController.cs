@@ -11,7 +11,7 @@ namespace MCC.Controllers
         public IActionResult RegisterUser
             (CreateUserDto dto)
         {
-           
+            throw new Exception();
         }
     }
 }
