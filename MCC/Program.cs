@@ -3,7 +3,6 @@ using MCC.Data;
 using MCC.Models;
 using Microsoft.AspNetCore.Identity;
 using MCC.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -12,6 +11,7 @@ using System.Data.Common;
 using MCC.Data;
 using MCC.Services;
 using MCC.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace MCC
 {
